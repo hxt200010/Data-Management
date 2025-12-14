@@ -1,0 +1,1115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insurance CRM - Customer Data Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            color: #e4e4e7;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #a1a1aa;
+            font-size: 0.9rem;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Tech badges */
+        .tech-stack {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* Dashboard Stats */
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 1.25rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d9ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #a1a1aa;
+        }
+
+        .stat-card.warning .stat-value {
+            background: linear-gradient(90deg, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .tab {
+            padding: 0.7rem 1.5rem;
+            background: transparent;
+            border: none;
+            color: #a1a1aa;
+            cursor: pointer;
+            font-size: 0.95rem;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #e4e4e7;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .tab.active {
+            color: #00d9ff;
+            background: rgba(0, 217, 255, 0.1);
+            border-bottom: 2px solid #00d9ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: #00d9ff;
+        }
+
+        /* Form */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 0.8rem;
+            color: #a1a1aa;
+            margin-bottom: 0.3rem;
+        }
+
+        input, textarea, select {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.65rem 1rem;
+            color: #fff;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #00d9ff;
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.2);
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        select option {
+            background: #1a1a2e;
+            color: #fff;
+        }
+
+        /* Buttons */
+        .btn-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.65rem 1.25rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e4e4e7;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+
+        .btn-sm {
+            padding: 0.4rem 0.7rem;
+            font-size: 0.75rem;
+        }
+
+        /* Search and Controls */
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-box input {
+            width: 100%;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 0.85rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th {
+            background: rgba(0, 0, 0, 0.2);
+            color: #a1a1aa;
+            font-weight: 500;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pagination-info {
+            color: #a1a1aa;
+            font-size: 0.85rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .page-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #e4e4e7;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .page-indicator {
+            padding: 0.5rem 1rem;
+            background: rgba(0, 217, 255, 0.1);
+            border-radius: 6px;
+            color: #00d9ff;
+            font-weight: 500;
+        }
+
+        /* Alerts */
+        .alert {
+            padding: 0.85rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 2.5rem;
+            color: #71717a;
+        }
+
+        .empty-state svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 0.75rem;
+            opacity: 0.5;
+        }
+
+        /* Policy type badges */
+        .policy-badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: capitalize;
+        }
+
+        .policy-badge.auto { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .policy-badge.home { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .policy-badge.life { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .policy-badge.health { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+
+        /* Status badges */
+        .status-badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.active { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .status-badge.expired { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .status-badge.cancelled { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #1a1a2e;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            margin-bottom: 1rem;
+            color: #00d9ff;
+        }
+
+        /* Per page select */
+        .per-page-select {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .per-page-select select {
+            padding: 0.4rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="header-left">
+                <h1>🏢 Insurance CRM</h1>
+                <p class="subtitle">Customer & Policy Management System</p>
+                <div class="tech-stack">
+                    <span class="badge">🐍 Python</span>
+                    <span class="badge">🌶️ Flask</span>
+                    <span class="badge">🗃️ SQLite</span>
+                    <span class="badge">📄 Pagination</span>
+                    <span class="badge">📊 Dashboard</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary" onclick="exportCustomers()">📥 Export Customers</button>
+                <button class="btn btn-secondary" onclick="exportPolicies()">📥 Export Policies</button>
+            </div>
+        </header>
+
+        <!-- Dashboard Stats -->
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="statCustomers">0</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📋</div>
+                <div class="stat-value" id="statPolicies">0</div>
+                <div class="stat-label">Active Policies</div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-value" id="statExpiring">0</div>
+                <div class="stat-label">Expiring in 30 Days</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value" id="statPremium">$0</div>
+                <div class="stat-label">Total Premium</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('customers')">👥 Customers</button>
+            <button class="tab" onclick="switchTab('policies')">📋 Policies</button>
+        </div>
+
+        <!-- Customers Tab -->
+        <div id="customersTab" class="tab-content active">
+            <!-- Customer Form -->
+            <div class="card">
+                <h2 id="customerFormTitle">➕ Add New Customer</h2>
+                
+                <div class="alert alert-error" id="customerError"></div>
+                <div class="alert alert-success" id="customerSuccess"></div>
+                
+                <form id="customerForm">
+                    <input type="hidden" id="customerId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Name *</label>
+                            <input type="text" id="name" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email *</label>
+                            <input type="email" id="email" placeholder="john@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="phone">Phone</label>
+                            <input type="text" id="phone" placeholder="555-123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" placeholder="123 Main St, City">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary" id="customerSubmitBtn">Add Customer</button>
+                        <button type="button" class="btn btn-secondary" id="customerCancelBtn" style="display: none;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Customer List -->
+            <div class="card">
+                <h2>👥 Customer List</h2>
+                
+                <div class="controls">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="🔍 Search by name, email, or phone...">
+                    </div>
+                    <div class="per-page-select">
+                        <label>Show:</label>
+                        <select id="perPageSelect" onchange="changePerPage()">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="25">25</option>
+                            <option value="50">50</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customerTable"></tbody>
+                    </table>
+                    
+                    <div class="empty-state" id="customerEmptyState" style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <p>No customers found</p>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <div class="pagination" id="customerPagination">
+                    <div class="pagination-info" id="paginationInfo">Showing 0 of 0</div>
+                    <div class="pagination-controls">
+                        <button class="page-btn" id="prevBtn" onclick="changePage(-1)">← Prev</button>
+                        <span class="page-indicator" id="pageIndicator">1 / 1</span>
+                        <button class="page-btn" id="nextBtn" onclick="changePage(1)">Next →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Policies Tab -->
+        <div id="policiesTab" class="tab-content">
+            <!-- Policy Form -->
+            <div class="card">
+                <h2 id="policyFormTitle">➕ Add New Policy</h2>
+                
+                <div class="alert alert-error" id="policyError"></div>
+                <div class="alert alert-success" id="policySuccess"></div>
+                
+                <form id="policyForm">
+                    <input type="hidden" id="policyId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="policyCustomer">Customer *</label>
+                            <select id="policyCustomer" required>
+                                <option value="">Select Customer</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyType">Policy Type *</label>
+                            <select id="policyType" required>
+                                <option value="">Select Type</option>
+                                <option value="auto">Auto Insurance</option>
+                                <option value="home">Home Insurance</option>
+                                <option value="life">Life Insurance</option>
+                                <option value="health">Health Insurance</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyNumber">Policy Number *</label>
+                            <input type="text" id="policyNumber" placeholder="POL-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyPremium">Premium ($) *</label>
+                            <input type="number" id="policyPremium" placeholder="1200" step="0.01" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyStart">Start Date *</label>
+                            <input type="date" id="policyStart" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyEnd">End Date *</label>
+                            <input type="date" id="policyEnd" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="policyStatus">Status</label>
+                            <select id="policyStatus">
+                                <option value="active">Active</option>
+                                <option value="expired">Expired</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary" id="policySubmitBtn">Add Policy</button>
+                        <button type="button" class="btn btn-secondary" id="policyCancelBtn" style="display: none;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Policy List -->
+            <div class="card">
+                <h2>📋 Policy List</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Policy #</th>
+                                <th>Customer</th>
+                                <th>Type</th>
+                                <th>Premium</th>
+                                <th>Start</th>
+                                <th>End</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="policyTable"></tbody>
+                    </table>
+                    
+                    <div class="empty-state" id="policyEmptyState" style="display: none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <p>No policies found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // STATE
+        // ============================================
+        
+        let currentPage = 1;
+        let perPage = 10;
+        let totalPages = 1;
+        let searchQuery = '';
+
+        const API_URL = '/api';
+
+        // ============================================
+        // DASHBOARD
+        // ============================================
+
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_URL}/stats`);
+                const stats = await response.json();
+                
+                document.getElementById('statCustomers').textContent = stats.total_customers;
+                document.getElementById('statPolicies').textContent = stats.active_policies;
+                document.getElementById('statExpiring').textContent = stats.expiring_soon;
+                document.getElementById('statPremium').textContent = '$' + stats.total_premium.toLocaleString();
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+            }
+        }
+
+        // ============================================
+        // CUSTOMERS
+        // ============================================
+
+        async function loadCustomers() {
+            try {
+                const url = `${API_URL}/customers?page=${currentPage}&per_page=${perPage}&search=${encodeURIComponent(searchQuery)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                renderCustomers(data.customers);
+                updatePagination(data.pagination);
+            } catch (error) {
+                showError('customerError', 'Failed to load customers');
+            }
+        }
+
+        function renderCustomers(customers) {
+            const table = document.getElementById('customerTable');
+            const emptyState = document.getElementById('customerEmptyState');
+
+            if (customers.length === 0) {
+                table.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            table.innerHTML = customers.map(c => `
+                <tr>
+                    <td>#${c.id}</td>
+                    <td>${escapeHtml(c.name)}</td>
+                    <td>${escapeHtml(c.email)}</td>
+                    <td>${escapeHtml(c.phone || '-')}</td>
+                    <td>${escapeHtml(c.address || '-')}</td>
+                    <td class="actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editCustomer(${c.id})">Edit</button>
+                        <button class="btn btn-success btn-sm" onclick="addPolicyForCustomer(${c.id}, '${escapeHtml(c.name)}')">+ Policy</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updatePagination(pagination) {
+            totalPages = pagination.total_pages || 1;
+            
+            document.getElementById('paginationInfo').textContent = 
+                `Showing ${pagination.per_page * (pagination.page - 1) + 1}-${Math.min(pagination.per_page * pagination.page, pagination.total)} of ${pagination.total}`;
+            
+            document.getElementById('pageIndicator').textContent = `${pagination.page} / ${totalPages}`;
+            document.getElementById('prevBtn').disabled = !pagination.has_prev;
+            document.getElementById('nextBtn').disabled = !pagination.has_next;
+        }
+
+        function changePage(delta) {
+            currentPage += delta;
+            loadCustomers();
+        }
+
+        function changePerPage() {
+            perPage = parseInt(document.getElementById('perPageSelect').value);
+            currentPage = 1;
+            loadCustomers();
+        }
+
+        // Customer CRUD
+        document.getElementById('customerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value
+            };
+
+            const customerId = document.getElementById('customerId').value;
+
+            try {
+                let result;
+                if (customerId) {
+                    result = await fetch(`${API_URL}/customers/${customerId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).then(r => r.json());
+                    if (result.success) showSuccess('customerSuccess', 'Customer updated!');
+                } else {
+                    result = await fetch(`${API_URL}/customers`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).then(r => r.json());
+                    if (result.success) showSuccess('customerSuccess', 'Customer added!');
+                }
+
+                if (result.success) {
+                    resetCustomerForm();
+                    loadCustomers();
+                    loadDashboard();
+                    loadCustomerDropdown();
+                } else {
+                    showError('customerError', result.errors);
+                }
+            } catch (error) {
+                showError('customerError', 'An error occurred');
+            }
+        });
+
+        async function editCustomer(id) {
+            const response = await fetch(`${API_URL}/customers/${id}`);
+            const customer = await response.json();
+
+            document.getElementById('customerId').value = customer.id;
+            document.getElementById('name').value = customer.name;
+            document.getElementById('email').value = customer.email;
+            document.getElementById('phone').value = customer.phone || '';
+            document.getElementById('address').value = customer.address || '';
+
+            document.getElementById('customerFormTitle').textContent = '✏️ Edit Customer';
+            document.getElementById('customerSubmitBtn').textContent = 'Update Customer';
+            document.getElementById('customerCancelBtn').style.display = 'inline-block';
+            document.getElementById('name').focus();
+        }
+
+        async function deleteCustomer(id) {
+            if (confirm('Delete this customer and all their policies?')) {
+                const result = await fetch(`${API_URL}/customers/${id}`, { method: 'DELETE' }).then(r => r.json());
+                if (result.success) {
+                    showSuccess('customerSuccess', 'Customer deleted!');
+                    loadCustomers();
+                    loadDashboard();
+                    loadPolicies();
+                    loadCustomerDropdown();
+                }
+            }
+        }
+
+        function resetCustomerForm() {
+            document.getElementById('customerForm').reset();
+            document.getElementById('customerId').value = '';
+            document.getElementById('customerFormTitle').textContent = '➕ Add New Customer';
+            document.getElementById('customerSubmitBtn').textContent = 'Add Customer';
+            document.getElementById('customerCancelBtn').style.display = 'none';
+        }
+
+        document.getElementById('customerCancelBtn').addEventListener('click', resetCustomerForm);
+
+        // Search
+        let searchTimeout;
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                searchQuery = e.target.value;
+                currentPage = 1;
+                loadCustomers();
+            }, 300);
+        });
+
+        // ============================================
+        // POLICIES
+        // ============================================
+
+        async function loadPolicies() {
+            try {
+                const response = await fetch(`${API_URL}/policies`);
+                const policies = await response.json();
+                renderPolicies(policies);
+            } catch (error) {
+                console.error('Failed to load policies:', error);
+            }
+        }
+
+        function renderPolicies(policies) {
+            const table = document.getElementById('policyTable');
+            const emptyState = document.getElementById('policyEmptyState');
+
+            if (policies.length === 0) {
+                table.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            table.innerHTML = policies.map(p => `
+                <tr>
+                    <td>${escapeHtml(p.policy_number)}</td>
+                    <td>${escapeHtml(p.customer_name)}</td>
+                    <td><span class="policy-badge ${p.policy_type}">${p.policy_type}</span></td>
+                    <td>$${parseFloat(p.premium).toLocaleString()}</td>
+                    <td>${p.start_date}</td>
+                    <td>${p.end_date}</td>
+                    <td><span class="status-badge ${p.status}">${p.status}</span></td>
+                    <td class="actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editPolicy(${p.id})">Edit</button>
+                        <button class="btn btn-danger btn-sm" onclick="deletePolicy(${p.id})">Delete</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadCustomerDropdown() {
+            const response = await fetch(`${API_URL}/customers?per_page=100`);
+            const data = await response.json();
+            const select = document.getElementById('policyCustomer');
+            
+            select.innerHTML = '<option value="">Select Customer</option>' + 
+                data.customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${escapeHtml(c.email)})</option>`).join('');
+        }
+
+        function addPolicyForCustomer(customerId, customerName) {
+            switchTab('policies');
+            document.getElementById('policyCustomer').value = customerId;
+            document.getElementById('policyNumber').focus();
+        }
+
+        // Policy CRUD
+        document.getElementById('policyForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                customer_id: parseInt(document.getElementById('policyCustomer').value),
+                policy_type: document.getElementById('policyType').value,
+                policy_number: document.getElementById('policyNumber').value,
+                premium: parseFloat(document.getElementById('policyPremium').value),
+                start_date: document.getElementById('policyStart').value,
+                end_date: document.getElementById('policyEnd').value,
+                status: document.getElementById('policyStatus').value
+            };
+
+            const policyId = document.getElementById('policyId').value;
+
+            try {
+                let result;
+                if (policyId) {
+                    result = await fetch(`${API_URL}/policies/${policyId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).then(r => r.json());
+                    if (result.success) showSuccess('policySuccess', 'Policy updated!');
+                } else {
+                    result = await fetch(`${API_URL}/policies`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).then(r => r.json());
+                    if (result.success) showSuccess('policySuccess', 'Policy added!');
+                }
+
+                if (result.success) {
+                    resetPolicyForm();
+                    loadPolicies();
+                    loadDashboard();
+                } else {
+                    showError('policyError', result.errors);
+                }
+            } catch (error) {
+                showError('policyError', 'An error occurred');
+            }
+        });
+
+        async function editPolicy(id) {
+            const response = await fetch(`${API_URL}/policies/${id}`);
+            const policy = await response.json();
+
+            document.getElementById('policyId').value = policy.id;
+            document.getElementById('policyCustomer').value = policy.customer_id;
+            document.getElementById('policyType').value = policy.policy_type;
+            document.getElementById('policyNumber').value = policy.policy_number;
+            document.getElementById('policyPremium').value = policy.premium;
+            document.getElementById('policyStart').value = policy.start_date;
+            document.getElementById('policyEnd').value = policy.end_date;
+            document.getElementById('policyStatus').value = policy.status;
+
+            document.getElementById('policyFormTitle').textContent = '✏️ Edit Policy';
+            document.getElementById('policySubmitBtn').textContent = 'Update Policy';
+            document.getElementById('policyCancelBtn').style.display = 'inline-block';
+        }
+
+        async function deletePolicy(id) {
+            if (confirm('Delete this policy?')) {
+                const result = await fetch(`${API_URL}/policies/${id}`, { method: 'DELETE' }).then(r => r.json());
+                if (result.success) {
+                    showSuccess('policySuccess', 'Policy deleted!');
+                    loadPolicies();
+                    loadDashboard();
+                }
+            }
+        }
+
+        function resetPolicyForm() {
+            document.getElementById('policyForm').reset();
+            document.getElementById('policyId').value = '';
+            document.getElementById('policyFormTitle').textContent = '➕ Add New Policy';
+            document.getElementById('policySubmitBtn').textContent = 'Add Policy';
+            document.getElementById('policyCancelBtn').style.display = 'none';
+        }
+
+        document.getElementById('policyCancelBtn').addEventListener('click', resetPolicyForm);
+
+        // ============================================
+        // TABS
+        // ============================================
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            
+            document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+        }
+
+        // ============================================
+        // EXPORT
+        // ============================================
+
+        function exportCustomers() {
+            window.location.href = `${API_URL}/export/customers`;
+        }
+
+        function exportPolicies() {
+            window.location.href = `${API_URL}/export/policies`;
+        }
+
+        // ============================================
+        // UTILITIES
+        // ============================================
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showError(elementId, message) {
+            const alert = document.getElementById(elementId);
+            alert.textContent = Array.isArray(message) ? message.join(', ') : message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 5000);
+        }
+
+        function showSuccess(elementId, message) {
+            const alert = document.getElementById(elementId);
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 3000);
+        }
+
+        // ============================================
+        // INITIALIZE
+        // ============================================
+        
+        loadDashboard();
+        loadCustomers();
+        loadPolicies();
+        loadCustomerDropdown();
+    </script>
+</body>
+</html>
