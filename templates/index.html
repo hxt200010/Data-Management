@@ -50,6 +50,61 @@
         .header-right {
             display: flex;
             gap: 0.5rem;
+            align-items: center;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-right: 0.5rem;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d9ff, #00ff88);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+
+        .user-details {
+            text-align: left;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: #a1a1aa;
+            text-transform: capitalize;
+        }
+
+        .role-badge {
+            font-size: 0.65rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            margin-left: 0.3rem;
+        }
+
+        .role-badge.admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .role-badge.agent {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
         }
 
         /* Tech badges */
@@ -71,7 +126,7 @@
         /* Dashboard Stats */
         .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -121,6 +176,7 @@
             margin-bottom: 1.5rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             padding-bottom: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .tab {
@@ -181,10 +237,6 @@
             flex-direction: column;
         }
 
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
         label {
             font-size: 0.8rem;
             color: #a1a1aa;
@@ -235,6 +287,7 @@
             display: inline-flex;
             align-items: center;
             gap: 0.4rem;
+            text-decoration: none;
         }
 
         .btn-primary {
@@ -441,39 +494,45 @@
         .status-badge.expired { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
         .status-badge.cancelled { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
 
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+        /* Action badges for audit log */
+        .action-badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
 
-        .modal-overlay.active {
-            display: flex;
-        }
+        .action-badge.create { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .action-badge.update { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .action-badge.delete { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .action-badge.login { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+        .action-badge.logout { background: rgba(107, 114, 128, 0.2); color: #9ca3af; }
+        .action-badge.export { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .action-badge.register { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
+        .action-badge.send_reminder { background: rgba(34, 197, 94, 0.2); color: #86efac; }
 
-        .modal {
-            background: #1a1a2e;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 1.5rem;
-            width: 90%;
-            max-width: 500px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
+        /* Claim status badges */
+        .claim-status { padding: 0.25rem 0.6rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+        .claim-status.submitted { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .claim-status.reviewing { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .claim-status.approved { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .claim-status.denied { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .claim-status.paid { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
 
-        .modal h3 {
-            margin-bottom: 1rem;
-            color: #00d9ff;
-        }
+        /* Renewal alerts widget */
+        .alerts-widget { margin-bottom: 1.5rem; }
+        .alerts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+        .alert-card { padding: 1rem; border-radius: 12px; border-left: 4px solid; }
+        .alert-card.urgent { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+        .alert-card.warning { background: rgba(251, 191, 36, 0.1); border-color: #fbbf24; }
+        .alert-card.notice { background: rgba(59, 130, 246, 0.1); border-color: #60a5fa; }
+        .alert-card h4 { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .alert-card .count { font-size: 1.5rem; font-weight: bold; }
+        .alert-card.urgent .count { color: #ef4444; }
+        .alert-card.warning .count { color: #fbbf24; }
+        .alert-card.notice .count { color: #60a5fa; }
+        .alert-list { font-size: 0.8rem; color: #a1a1aa; max-height: 80px; overflow-y: auto; }
+        .alert-list-item { padding: 0.3rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
         /* Per page select */
         .per-page-select {
@@ -486,6 +545,23 @@
             padding: 0.4rem;
             font-size: 0.85rem;
         }
+
+        /* Admin only elements */
+        .admin-only {
+            display: none;
+        }
+
+        body.is-admin .admin-only {
+            display: flex;
+        }
+
+        body.is-admin .admin-only-block {
+            display: block;
+        }
+
+        body.is-admin .admin-only-inline {
+            display: inline;
+        }
     </style>
 </head>
 <body>
@@ -496,16 +572,27 @@
                 <h1>🏢 Insurance CRM</h1>
                 <p class="subtitle">Customer & Policy Management System</p>
                 <div class="tech-stack">
-                    <span class="badge">🐍 Python</span>
-                    <span class="badge">🌶️ Flask</span>
-                    <span class="badge">🗃️ SQLite</span>
-                    <span class="badge">📄 Pagination</span>
-                    <span class="badge">📊 Dashboard</span>
+                    <span class="badge">🔐 Auth</span>
+                    <span class="badge">👥 Roles</span>
+                    <span class="badge">📜 Audit Log</span>
+                    <span class="badge">📝 Claims</span>
+                    <span class="badge">🔔 Alerts</span>
                 </div>
             </div>
             <div class="header-right">
-                <button class="btn btn-secondary" onclick="exportCustomers()">📥 Export Customers</button>
-                <button class="btn btn-secondary" onclick="exportPolicies()">📥 Export Policies</button>
+                <div class="user-info">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-details">
+                        <div class="user-name" id="userName">Loading...</div>
+                        <div class="user-role">
+                            <span id="userRole">agent</span>
+                            <span class="role-badge agent" id="roleBadge">agent</span>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" onclick="exportCustomers()">📥 Customers</button>
+                <button class="btn btn-secondary" onclick="exportPolicies()">📥 Policies</button>
+                <a href="/logout" class="btn btn-danger">Logout</a>
             </div>
         </header>
 
@@ -537,11 +624,13 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab('customers')">👥 Customers</button>
             <button class="tab" onclick="switchTab('policies')">📋 Policies</button>
+            <button class="tab" onclick="switchTab('claims')">📝 Claims</button>
+            <button class="tab admin-only" onclick="switchTab('users')">👤 Users</button>
+            <button class="tab admin-only" onclick="switchTab('audit')">📜 Audit Log</button>
         </div>
 
         <!-- Customers Tab -->
         <div id="customersTab" class="tab-content active">
-            <!-- Customer Form -->
             <div class="card">
                 <h2 id="customerFormTitle">➕ Add New Customer</h2>
                 
@@ -575,7 +664,6 @@
                 </form>
             </div>
 
-            <!-- Customer List -->
             <div class="card">
                 <h2>👥 Customer List</h2>
                 
@@ -610,14 +698,10 @@
                     </table>
                     
                     <div class="empty-state" id="customerEmptyState" style="display: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
                         <p>No customers found</p>
                     </div>
                 </div>
 
-                <!-- Pagination -->
                 <div class="pagination" id="customerPagination">
                     <div class="pagination-info" id="paginationInfo">Showing 0 of 0</div>
                     <div class="pagination-controls">
@@ -631,7 +715,6 @@
 
         <!-- Policies Tab -->
         <div id="policiesTab" class="tab-content">
-            <!-- Policy Form -->
             <div class="card">
                 <h2 id="policyFormTitle">➕ Add New Policy</h2>
                 
@@ -689,7 +772,6 @@
                 </form>
             </div>
 
-            <!-- Policy List -->
             <div class="card">
                 <h2>📋 Policy List</h2>
                 
@@ -711,11 +793,175 @@
                     </table>
                     
                     <div class="empty-state" id="policyEmptyState" style="display: none;">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
                         <p>No policies found</p>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Claims Tab -->
+        <div id="claimsTab" class="tab-content">
+            <!-- Renewal Alerts Widget -->
+            <div class="alerts-widget">
+                <div class="card">
+                    <h2>🔔 Renewal Alerts</h2>
+                    <div class="alerts-grid" id="alertsGrid">
+                        <div class="alert-card urgent">
+                            <h4>🚨 Critical (0-7 days)</h4>
+                            <div class="count" id="alertUrgent">0</div>
+                            <div class="alert-list" id="alertUrgentList"></div>
+                        </div>
+                        <div class="alert-card warning">
+                            <h4>⚠️ Warning (8-14 days)</h4>
+                            <div class="count" id="alertWarning">0</div>
+                            <div class="alert-list" id="alertWarningList"></div>
+                        </div>
+                        <div class="alert-card notice">
+                            <h4>📋 Notice (15-30 days)</h4>
+                            <div class="count" id="alertNotice">0</div>
+                            <div class="alert-list" id="alertNoticeList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2 id="claimFormTitle">➕ File New Claim</h2>
+                
+                <div class="alert alert-error" id="claimError"></div>
+                <div class="alert alert-success" id="claimSuccess"></div>
+                
+                <form id="claimForm">
+                    <input type="hidden" id="claimId">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="claimPolicy">Policy *</label>
+                            <select id="claimPolicy" required>
+                                <option value="">Select Policy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="claimNumber">Claim Number *</label>
+                            <input type="text" id="claimNumber" placeholder="CLM-001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="claimType">Claim Type *</label>
+                            <select id="claimType" required>
+                                <option value="">Select Type</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="claimAmount">Amount ($)</label>
+                            <input type="number" id="claimAmount" placeholder="5000" step="0.01" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="claimDate">Filed Date *</label>
+                            <input type="date" id="claimDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="claimStatus">Status</label>
+                            <select id="claimStatus">
+                                <option value="submitted">Submitted</option>
+                                <option value="reviewing">Reviewing</option>
+                                <option value="approved">Approved</option>
+                                <option value="denied">Denied</option>
+                                <option value="paid">Paid</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="grid-column: span 2;">
+                            <label for="claimDescription">Description</label>
+                            <textarea id="claimDescription" rows="2" placeholder="Describe the claim details..."></textarea>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary" id="claimSubmitBtn">File Claim</button>
+                        <button type="button" class="btn btn-secondary" id="claimCancelBtn" style="display: none;">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>📝 Claims List</h2>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Claim #</th>
+                                <th>Policy</th>
+                                <th>Customer</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Filed</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="claimTable"></tbody>
+                    </table>
+                    
+                    <div class="empty-state" id="claimEmptyState" style="display: none;">
+                        <p>No claims found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab (Admin only) -->
+        <div id="usersTab" class="tab-content">
+            <div class="card">
+                <h2>👤 User Management</h2>
+                
+                <div class="alert alert-error" id="userError"></div>
+                <div class="alert alert-success" id="userSuccess"></div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Audit Log Tab (Admin only) -->
+        <div id="auditTab" class="tab-content">
+            <div class="card">
+                <h2>📜 Audit Log</h2>
+                <p style="color: #a1a1aa; margin-bottom: 1rem; font-size: 0.9rem;">Track all system activities</p>
+                
+                <div class="controls">
+                    <select id="auditFilter" onchange="loadAuditLogs()">
+                        <option value="">All Actions</option>
+                        <option value="customer">Customer Actions</option>
+                        <option value="policy">Policy Actions</option>
+                        <option value="user">User Actions</option>
+                    </select>
+                </div>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Entity</th>
+                                <th>ID</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditTable"></tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -730,8 +976,15 @@
         let perPage = 10;
         let totalPages = 1;
         let searchQuery = '';
+        let currentUser = null;
 
         const API_URL = '/api';
+
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+
+        // Moved to end of file after all functions are defined
 
         // ============================================
         // DASHBOARD
@@ -771,6 +1024,7 @@
         function renderCustomers(customers) {
             const table = document.getElementById('customerTable');
             const emptyState = document.getElementById('customerEmptyState');
+            const isAdmin = currentUser && currentUser.role === 'admin';
 
             if (customers.length === 0) {
                 table.innerHTML = '';
@@ -789,7 +1043,7 @@
                     <td class="actions">
                         <button class="btn btn-secondary btn-sm" onclick="editCustomer(${c.id})">Edit</button>
                         <button class="btn btn-success btn-sm" onclick="addPolicyForCustomer(${c.id}, '${escapeHtml(c.name)}')">+ Policy</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button>
+                        ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteCustomer(${c.id})">Delete</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -853,6 +1107,7 @@
                     loadCustomers();
                     loadDashboard();
                     loadCustomerDropdown();
+                    if (currentUser.role === 'admin') loadAuditLogs();
                 } else {
                     showError('customerError', result.errors);
                 }
@@ -886,6 +1141,9 @@
                     loadDashboard();
                     loadPolicies();
                     loadCustomerDropdown();
+                    if (currentUser.role === 'admin') loadAuditLogs();
+                } else {
+                    showError('customerError', result.errors || result.error);
                 }
             }
         }
@@ -928,6 +1186,7 @@
         function renderPolicies(policies) {
             const table = document.getElementById('policyTable');
             const emptyState = document.getElementById('policyEmptyState');
+            const isAdmin = currentUser && currentUser.role === 'admin';
 
             if (policies.length === 0) {
                 table.innerHTML = '';
@@ -947,7 +1206,7 @@
                     <td><span class="status-badge ${p.status}">${p.status}</span></td>
                     <td class="actions">
                         <button class="btn btn-secondary btn-sm" onclick="editPolicy(${p.id})">Edit</button>
-                        <button class="btn btn-danger btn-sm" onclick="deletePolicy(${p.id})">Delete</button>
+                        ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deletePolicy(${p.id})">Delete</button>` : ''}
                     </td>
                 </tr>
             `).join('');
@@ -1006,6 +1265,7 @@
                     resetPolicyForm();
                     loadPolicies();
                     loadDashboard();
+                    if (currentUser.role === 'admin') loadAuditLogs();
                 } else {
                     showError('policyError', result.errors);
                 }
@@ -1039,6 +1299,9 @@
                     showSuccess('policySuccess', 'Policy deleted!');
                     loadPolicies();
                     loadDashboard();
+                    if (currentUser.role === 'admin') loadAuditLogs();
+                } else {
+                    showError('policyError', result.errors || result.error);
                 }
             }
         }
@@ -1052,6 +1315,108 @@
         }
 
         document.getElementById('policyCancelBtn').addEventListener('click', resetPolicyForm);
+
+        // ============================================
+        // USERS (Admin only)
+        // ============================================
+
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_URL}/users`);
+                const users = await response.json();
+                renderUsers(users);
+            } catch (error) {
+                console.error('Failed to load users:', error);
+            }
+        }
+
+        function renderUsers(users) {
+            const table = document.getElementById('userTable');
+            
+            table.innerHTML = users.map(u => `
+                <tr>
+                    <td>#${u.id}</td>
+                    <td>${escapeHtml(u.username)}</td>
+                    <td>${escapeHtml(u.email)}</td>
+                    <td>
+                        <select onchange="changeUserRole(${u.id}, this.value)" ${u.id === currentUser.id ? 'disabled' : ''}>
+                            <option value="agent" ${u.role === 'agent' ? 'selected' : ''}>Agent</option>
+                            <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option>
+                        </select>
+                    </td>
+                    <td>${new Date(u.created_at).toLocaleDateString()}</td>
+                    <td class="actions">
+                        ${u.id !== currentUser.id ? 
+                            `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">Delete</button>` : 
+                            '<span style="color: #71717a;">Current User</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function changeUserRole(userId, newRole) {
+            try {
+                const result = await fetch(`${API_URL}/users/${userId}/role`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ role: newRole })
+                }).then(r => r.json());
+                
+                if (result.success) {
+                    showSuccess('userSuccess', 'Role updated!');
+                    loadAuditLogs();
+                } else {
+                    showError('userError', result.error);
+                    loadUsers(); // Reload to reset dropdown
+                }
+            } catch (error) {
+                showError('userError', 'Failed to update role');
+            }
+        }
+
+        async function deleteUser(userId) {
+            if (confirm('Delete this user?')) {
+                const result = await fetch(`${API_URL}/users/${userId}`, { method: 'DELETE' }).then(r => r.json());
+                if (result.success) {
+                    showSuccess('userSuccess', 'User deleted!');
+                    loadUsers();
+                    loadAuditLogs();
+                } else {
+                    showError('userError', result.error);
+                }
+            }
+        }
+
+        // ============================================
+        // AUDIT LOG (Admin only)
+        // ============================================
+
+        async function loadAuditLogs() {
+            try {
+                const filter = document.getElementById('auditFilter').value;
+                const url = filter ? `${API_URL}/audit-logs?entity_type=${filter}` : `${API_URL}/audit-logs`;
+                const response = await fetch(url);
+                const logs = await response.json();
+                renderAuditLogs(logs);
+            } catch (error) {
+                console.error('Failed to load audit logs:', error);
+            }
+        }
+
+        function renderAuditLogs(logs) {
+            const table = document.getElementById('auditTable');
+            
+            table.innerHTML = logs.map(log => `
+                <tr>
+                    <td>${new Date(log.timestamp).toLocaleString()}</td>
+                    <td>${escapeHtml(log.username || 'System')}</td>
+                    <td><span class="action-badge ${log.action}">${log.action}</span></td>
+                    <td>${escapeHtml(log.entity_type)}</td>
+                    <td>${log.entity_id || '-'}</td>
+                    <td>${escapeHtml(log.ip_address || '-')}</td>
+                </tr>
+            `).join('');
+        }
 
         // ============================================
         // TABS
@@ -1103,13 +1468,250 @@
         }
 
         // ============================================
+        // CLAIMS
+        // ============================================
+
+        let claimTypes = {};
+
+        async function loadClaims() {
+            try {
+                const response = await fetch(`${API_URL}/claims`);
+                const claims = await response.json();
+                renderClaims(claims);
+            } catch (error) {
+                console.error('Failed to load claims:', error);
+            }
+        }
+
+        function renderClaims(claims) {
+            const table = document.getElementById('claimTable');
+            const emptyState = document.getElementById('claimEmptyState');
+            const isAdmin = currentUser && currentUser.role === 'admin';
+
+            if (claims.length === 0) {
+                table.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            table.innerHTML = claims.map(c => `
+                <tr>
+                    <td>${escapeHtml(c.claim_number)}</td>
+                    <td>${escapeHtml(c.policy_number)}</td>
+                    <td>${escapeHtml(c.customer_name)}</td>
+                    <td>${escapeHtml(c.claim_type.replace(/_/g, ' '))}</td>
+                    <td>$${parseFloat(c.amount || 0).toLocaleString()}</td>
+                    <td>${c.filed_date}</td>
+                    <td><span class="claim-status ${c.status}">${c.status}</span></td>
+                    <td class="actions">
+                        <button class="btn btn-secondary btn-sm" onclick="editClaim(${c.id})">Edit</button>
+                        ${isAdmin ? `<button class="btn btn-danger btn-sm" onclick="deleteClaim(${c.id})">Delete</button>` : ''}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadClaimTypes() {
+            try {
+                const response = await fetch(`${API_URL}/claim-types`);
+                claimTypes = await response.json();
+            } catch (error) {
+                console.error('Failed to load claim types:', error);
+            }
+        }
+
+        function updateClaimTypeDropdown() {
+            const policySelect = document.getElementById('claimPolicy');
+            const typeSelect = document.getElementById('claimType');
+            const selectedPolicyId = policySelect.value;
+            
+            if (!selectedPolicyId) {
+                typeSelect.innerHTML = '<option value="">Select a policy first</option>';
+                return;
+            }
+            
+            // Find the policy type from the option text
+            const selectedOption = policySelect.options[policySelect.selectedIndex];
+            const policyType = selectedOption.dataset.type || 'auto';
+            
+            const types = claimTypes[policyType] || [];
+            typeSelect.innerHTML = '<option value="">Select Type</option>' +
+                types.map(t => `<option value="${t}">${t.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>`).join('');
+        }
+
+        async function loadPolicyDropdown() {
+            const response = await fetch(`${API_URL}/policies`);
+            const policies = await response.json();
+            const select = document.getElementById('claimPolicy');
+            
+            select.innerHTML = '<option value="">Select Policy</option>' + 
+                policies.map(p => `<option value="${p.id}" data-type="${p.policy_type}">${escapeHtml(p.policy_number)} - ${escapeHtml(p.customer_name)}</option>`).join('');
+        }
+
+        // Claim form submission
+        document.getElementById('claimForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                policy_id: parseInt(document.getElementById('claimPolicy').value),
+                claim_number: document.getElementById('claimNumber').value,
+                claim_type: document.getElementById('claimType').value,
+                description: document.getElementById('claimDescription').value,
+                amount: parseFloat(document.getElementById('claimAmount').value) || 0,
+                filed_date: document.getElementById('claimDate').value,
+                status: document.getElementById('claimStatus').value
+            };
+
+            const claimId = document.getElementById('claimId').value;
+
+            try {
+                let result;
+                if (claimId) {
+                    result = await fetch(`${API_URL}/claims/${claimId}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).then(r => r.json());
+                    if (result.success) showSuccess('claimSuccess', 'Claim updated!');
+                } else {
+                    result = await fetch(`${API_URL}/claims`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data)
+                    }).then(r => r.json());
+                    if (result.success) showSuccess('claimSuccess', 'Claim filed!');
+                }
+
+                if (result.success) {
+                    resetClaimForm();
+                    loadClaims();
+                    if (currentUser.role === 'admin') loadAuditLogs();
+                } else {
+                    showError('claimError', result.errors);
+                }
+            } catch (error) {
+                showError('claimError', 'An error occurred');
+            }
+        });
+
+        async function editClaim(id) {
+            const response = await fetch(`${API_URL}/claims/${id}`);
+            const claim = await response.json();
+
+            document.getElementById('claimId').value = claim.id;
+            document.getElementById('claimPolicy').value = claim.policy_id;
+            updateClaimTypeDropdown();
+            document.getElementById('claimType').value = claim.claim_type;
+            document.getElementById('claimNumber').value = claim.claim_number;
+            document.getElementById('claimDescription').value = claim.description || '';
+            document.getElementById('claimAmount').value = claim.amount || '';
+            document.getElementById('claimDate').value = claim.filed_date;
+            document.getElementById('claimStatus').value = claim.status;
+
+            document.getElementById('claimFormTitle').textContent = '✏️ Edit Claim';
+            document.getElementById('claimSubmitBtn').textContent = 'Update Claim';
+            document.getElementById('claimCancelBtn').style.display = 'inline-block';
+        }
+
+        async function deleteClaim(id) {
+            if (confirm('Delete this claim?')) {
+                const result = await fetch(`${API_URL}/claims/${id}`, { method: 'DELETE' }).then(r => r.json());
+                if (result.success) {
+                    showSuccess('claimSuccess', 'Claim deleted!');
+                    loadClaims();
+                    if (currentUser.role === 'admin') loadAuditLogs();
+                } else {
+                    showError('claimError', result.errors || result.error);
+                }
+            }
+        }
+
+        function resetClaimForm() {
+            document.getElementById('claimForm').reset();
+            document.getElementById('claimId').value = '';
+            document.getElementById('claimFormTitle').textContent = '➕ File New Claim';
+            document.getElementById('claimSubmitBtn').textContent = 'File Claim';
+            document.getElementById('claimCancelBtn').style.display = 'none';
+        }
+
+        document.getElementById('claimCancelBtn').addEventListener('click', resetClaimForm);
+        document.getElementById('claimPolicy').addEventListener('change', updateClaimTypeDropdown);
+
+        // ============================================
+        // RENEWAL ALERTS
+        // ============================================
+
+        async function loadRenewalAlerts() {
+            try {
+                const response = await fetch(`${API_URL}/renewal-alerts`);
+                const alerts = await response.json();
+                renderRenewalAlerts(alerts);
+            } catch (error) {
+                console.error('Failed to load renewal alerts:', error);
+            }
+        }
+
+        function renderRenewalAlerts(alerts) {
+            document.getElementById('alertUrgent').textContent = alerts.urgent.length;
+            document.getElementById('alertWarning').textContent = alerts.warning.length;
+            document.getElementById('alertNotice').textContent = alerts.notice.length;
+
+            document.getElementById('alertUrgentList').innerHTML = alerts.urgent.slice(0, 5)
+                .map(p => `<div class="alert-list-item">${escapeHtml(p.policy_number)} - ${escapeHtml(p.customer_name)} (${p.end_date})</div>`).join('');
+            
+            document.getElementById('alertWarningList').innerHTML = alerts.warning.slice(0, 5)
+                .map(p => `<div class="alert-list-item">${escapeHtml(p.policy_number)} - ${escapeHtml(p.customer_name)} (${p.end_date})</div>`).join('');
+            
+            document.getElementById('alertNoticeList').innerHTML = alerts.notice.slice(0, 5)
+                .map(p => `<div class="alert-list-item">${escapeHtml(p.policy_number)} - ${escapeHtml(p.customer_name)} (${p.end_date})</div>`).join('');
+        }
+
+        // ============================================
         // INITIALIZE
         // ============================================
         
-        loadDashboard();
-        loadCustomers();
-        loadPolicies();
-        loadCustomerDropdown();
+        async function init() {
+            // Get current user
+            try {
+                const response = await fetch(`${API_URL}/me`);
+                currentUser = await response.json();
+                
+                // Update UI with user info
+                document.getElementById('userName').textContent = currentUser.username;
+                document.getElementById('userRole').textContent = currentUser.role;
+                document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
+                
+                const roleBadge = document.getElementById('roleBadge');
+                roleBadge.textContent = currentUser.role;
+                roleBadge.className = `role-badge ${currentUser.role}`;
+                
+                // If admin, add class to body for CSS selectors
+                if (currentUser.role === 'admin') {
+                    document.body.classList.add('is-admin');
+                }
+            } catch (error) {
+                window.location.href = '/login';
+                return;
+            }
+            
+            // Load all data
+            loadDashboard();
+            loadCustomers();
+            loadPolicies();
+            loadCustomerDropdown();
+            loadClaimTypes();
+            loadClaims();
+            loadPolicyDropdown();
+            loadRenewalAlerts();
+            
+            if (currentUser && currentUser.role === 'admin') {
+                loadUsers();
+                loadAuditLogs();
+            }
+        }
+        
+        init();
     </script>
 </body>
 </html>

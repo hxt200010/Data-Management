@@ -8,11 +8,15 @@ Demonstrates:
 - Pagination
 - Policy management
 - Dashboard statistics
+- User authentication with password hashing
+- Audit logging
 """
 
 import sqlite3
 import os
+import json
 from datetime import datetime, timedelta
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Database file path
 DATABASE = os.path.join(os.path.dirname(__file__), 'customers.db')
@@ -58,9 +62,206 @@ def init_db():
         )
     ''')
     
+    # Create users table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            role TEXT DEFAULT 'agent',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Create audit log table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            username TEXT,
+            action TEXT NOT NULL,
+            entity_type TEXT NOT NULL,
+            entity_id INTEGER,
+            details TEXT,
+            ip_address TEXT,
+            timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )
+    ''')
+    
+    # Create claims table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS claims (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            policy_id INTEGER NOT NULL,
+            claim_number TEXT UNIQUE NOT NULL,
+            claim_type TEXT NOT NULL,
+            description TEXT,
+            amount REAL,
+            status TEXT DEFAULT 'submitted',
+            filed_date DATE NOT NULL,
+            resolved_date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (policy_id) REFERENCES policies (id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Create notifications table for tracking sent reminders
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS notifications (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            policy_id INTEGER NOT NULL,
+            notification_type TEXT NOT NULL,
+            sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (policy_id) REFERENCES policies (id) ON DELETE CASCADE
+        )
+    ''')
+    
+    # Create default admin user if not exists
+    cursor.execute("SELECT id FROM users WHERE username = 'admin'")
+    if not cursor.fetchone():
+        admin_hash = generate_password_hash('admin123')
+        cursor.execute('''
+            INSERT INTO users (username, email, password_hash, role)
+            VALUES (?, ?, ?, ?)
+        ''', ('admin', 'admin@company.com', admin_hash, 'admin'))
+        print("Default admin user created (admin / admin123)")
+    
     conn.commit()
     conn.close()
     print("Database initialized successfully!")
+
+
+# ============================================
+# USER AUTHENTICATION
+# ============================================
+
+def create_user(username, email, password, role='agent'):
+    """Create a new user with hashed password"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    password_hash = generate_password_hash(password)
+    
+    cursor.execute('''
+        INSERT INTO users (username, email, password_hash, role)
+        VALUES (?, ?, ?, ?)
+    ''', (username, email, password_hash, role))
+    
+    user_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return user_id
+
+
+def authenticate_user(username, password):
+    """Verify username and password, return user if valid"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT * FROM users WHERE username = ?', (username,))
+    user = cursor.fetchone()
+    
+    conn.close()
+    
+    if user and check_password_hash(user['password_hash'], password):
+        return dict(user)
+    return None
+
+
+def get_user_by_id(user_id):
+    """Get user by ID"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT id, username, email, role, created_at FROM users WHERE id = ?', (user_id,))
+    user = cursor.fetchone()
+    
+    conn.close()
+    return dict(user) if user else None
+
+
+def get_all_users():
+    """Get all users (for admin)"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC')
+    users = cursor.fetchall()
+    
+    conn.close()
+    return [dict(row) for row in users]
+
+
+def update_user_role(user_id, role):
+    """Update user role"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('UPDATE users SET role = ? WHERE id = ?', (role, user_id))
+    
+    rows_affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows_affected > 0
+
+
+def delete_user(user_id):
+    """Delete a user"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
+    
+    rows_affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows_affected > 0
+
+
+# ============================================
+# AUDIT LOGGING
+# ============================================
+
+def log_action(user_id, username, action, entity_type, entity_id=None, details=None, ip_address=None):
+    """Log an action to the audit log"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    details_json = json.dumps(details) if details else None
+    
+    cursor.execute('''
+        INSERT INTO audit_log (user_id, username, action, entity_type, entity_id, details, ip_address)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (user_id, username, action, entity_type, entity_id, details_json, ip_address))
+    
+    conn.commit()
+    conn.close()
+
+
+def get_audit_logs(limit=100, entity_type=None):
+    """Get audit logs with optional filtering"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    if entity_type:
+        cursor.execute('''
+            SELECT * FROM audit_log
+            WHERE entity_type = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        ''', (entity_type, limit))
+    else:
+        cursor.execute('''
+            SELECT * FROM audit_log
+            ORDER BY timestamp DESC
+            LIMIT ?
+        ''', (limit,))
+    
+    logs = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in logs]
 
 
 # ============================================
@@ -335,6 +536,10 @@ def get_dashboard_stats():
     cursor.execute("SELECT COALESCE(SUM(premium), 0) FROM policies WHERE status = 'active'")
     total_premium = cursor.fetchone()[0]
     
+    # Total users
+    cursor.execute('SELECT COUNT(*) FROM users')
+    total_users = cursor.fetchone()[0]
+    
     conn.close()
     
     return {
@@ -342,10 +547,276 @@ def get_dashboard_stats():
         'total_policies': total_policies,
         'active_policies': active_policies,
         'expiring_soon': expiring_soon,
-        'total_premium': round(total_premium, 2)
+        'total_premium': round(total_premium, 2),
+        'total_users': total_users
     }
+
+
+# ============================================
+# CLAIMS CRUD OPERATIONS
+# ============================================
+
+# Comprehensive claim types for real insurance scenarios
+CLAIM_TYPES = {
+    'auto': [
+        'collision',           # Vehicle collision with another car
+        'comprehensive',       # Non-collision (theft, vandalism, weather)
+        'liability',           # Damage to other party
+        'uninsured_motorist',  # Hit by uninsured driver
+        'medical_payment',     # Medical bills from accident
+        'roadside_assistance', # Towing, lockout, etc.
+        'rental_reimbursement', # Rental car while yours is repaired
+        'glass_damage',        # Windshield/window damage
+    ],
+    'home': [
+        'fire_damage',         # Fire or smoke damage
+        'water_damage',        # Flooding, burst pipes, leaks
+        'theft_burglary',      # Stolen property
+        'vandalism',           # Property vandalism
+        'storm_damage',        # Wind, hail, lightning
+        'liability',           # Someone injured on property
+        'personal_property',   # Damaged/lost belongings
+        'structural_damage',   # Foundation, roof damage
+        'mold_damage',         # Mold remediation
+        'equipment_breakdown', # HVAC, appliances
+    ],
+    'life': [
+        'death_benefit',       # Primary death claim
+        'accidental_death',    # Accidental death benefit
+        'terminal_illness',    # Accelerated benefit
+        'disability_waiver',   # Waiver of premium
+        'cash_value_withdrawal', # Policy loan/withdrawal
+    ],
+    'health': [
+        'hospitalization',     # Hospital stay
+        'surgery',             # Surgical procedures
+        'emergency_room',      # ER visits
+        'prescription_drugs',  # Medication costs
+        'specialist_visit',    # Specialist consultations
+        'diagnostic_testing',  # Lab work, imaging
+        'mental_health',       # Therapy, psychiatry
+        'physical_therapy',    # Rehabilitation
+        'dental',              # Dental procedures
+        'vision',              # Eye care
+        'maternity',           # Pregnancy/childbirth
+        'preventive_care',     # Checkups, vaccinations
+    ]
+}
+
+
+def get_claim_types():
+    """Get all available claim types"""
+    return CLAIM_TYPES
+
+
+def create_claim(policy_id, claim_number, claim_type, description, amount, filed_date, status='submitted'):
+    """Create a new claim"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        INSERT INTO claims (policy_id, claim_number, claim_type, description, amount, filed_date, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', (policy_id, claim_number, claim_type, description, amount, filed_date, status))
+    
+    claim_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+    return claim_id
+
+
+def get_all_claims():
+    """Get all claims with policy and customer info"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT cl.*, p.policy_number, p.policy_type, c.name as customer_name, c.email as customer_email
+        FROM claims cl
+        JOIN policies p ON cl.policy_id = p.id
+        JOIN customers c ON p.customer_id = c.id
+        ORDER BY cl.filed_date DESC
+    ''')
+    
+    claims = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in claims]
+
+
+def get_claims_by_policy(policy_id):
+    """Get claims for a specific policy"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT * FROM claims
+        WHERE policy_id = ?
+        ORDER BY filed_date DESC
+    ''', (policy_id,))
+    
+    claims = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in claims]
+
+
+def get_claim_by_id(claim_id):
+    """Get a single claim by ID"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('SELECT * FROM claims WHERE id = ?', (claim_id,))
+    claim = cursor.fetchone()
+    
+    conn.close()
+    return dict(claim) if claim else None
+
+
+def update_claim(claim_id, claim_type, description, amount, status, resolved_date=None):
+    """Update a claim"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        UPDATE claims
+        SET claim_type = ?, description = ?, amount = ?, status = ?, resolved_date = ?
+        WHERE id = ?
+    ''', (claim_type, description, amount, status, resolved_date, claim_id))
+    
+    rows_affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows_affected > 0
+
+
+def delete_claim(claim_id):
+    """Delete a claim"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('DELETE FROM claims WHERE id = ?', (claim_id,))
+    
+    rows_affected = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return rows_affected > 0
+
+
+# ============================================
+# RENEWAL ALERTS & EXPIRING POLICIES
+# ============================================
+
+def get_expiring_policies(days=30):
+    """Get policies expiring within specified days"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    target_date = (datetime.now() + timedelta(days=days)).strftime('%Y-%m-%d')
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    cursor.execute('''
+        SELECT p.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+        FROM policies p
+        JOIN customers c ON p.customer_id = c.id
+        WHERE p.end_date BETWEEN ? AND ? AND p.status = 'active'
+        ORDER BY p.end_date ASC
+    ''', (today, target_date))
+    
+    policies = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in policies]
+
+
+def get_renewal_alerts():
+    """Get categorized renewal alerts by urgency"""
+    urgent = get_expiring_policies(7)      # Within 7 days - critical
+    warning = get_expiring_policies(14)    # Within 14 days
+    notice = get_expiring_policies(30)     # Within 30 days
+    
+    # Filter to avoid duplicates
+    warning_ids = {p['id'] for p in urgent}
+    warning = [p for p in warning if p['id'] not in warning_ids]
+    
+    notice_ids = warning_ids | {p['id'] for p in warning}
+    notice = [p for p in notice if p['id'] not in notice_ids]
+    
+    return {
+        'urgent': urgent,      # 0-7 days
+        'warning': warning,    # 8-14 days
+        'notice': notice       # 15-30 days
+    }
+
+
+def get_claims_stats():
+    """Get claims statistics for dashboard"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Total claims
+    cursor.execute('SELECT COUNT(*) FROM claims')
+    total_claims = cursor.fetchone()[0]
+    
+    # Pending claims (submitted + reviewing)
+    cursor.execute("SELECT COUNT(*) FROM claims WHERE status IN ('submitted', 'reviewing')")
+    pending_claims = cursor.fetchone()[0]
+    
+    # Total claim amount (approved + paid)
+    cursor.execute("SELECT COALESCE(SUM(amount), 0) FROM claims WHERE status IN ('approved', 'paid')")
+    total_claim_amount = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        'total_claims': total_claims,
+        'pending_claims': pending_claims,
+        'total_claim_amount': round(total_claim_amount, 2)
+    }
+
+
+# ============================================
+# NOTIFICATION TRACKING
+# ============================================
+
+def record_notification(policy_id, notification_type):
+    """Record that a notification was sent"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        INSERT INTO notifications (policy_id, notification_type)
+        VALUES (?, ?)
+    ''', (policy_id, notification_type))
+    
+    conn.commit()
+    conn.close()
+
+
+def get_policies_needing_notification(days_before_expiry, notification_type):
+    """Get policies that need reminders and haven't been notified yet"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    target_date = (datetime.now() + timedelta(days=days_before_expiry)).strftime('%Y-%m-%d')
+    today = datetime.now().strftime('%Y-%m-%d')
+    
+    cursor.execute('''
+        SELECT p.*, c.name as customer_name, c.email as customer_email
+        FROM policies p
+        JOIN customers c ON p.customer_id = c.id
+        WHERE p.end_date BETWEEN ? AND ?
+        AND p.status = 'active'
+        AND p.id NOT IN (
+            SELECT policy_id FROM notifications 
+            WHERE notification_type = ?
+            AND date(sent_at) = date('now')
+        )
+    ''', (today, target_date, notification_type))
+    
+    policies = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in policies]
 
 
 # Initialize database when module is imported
 if __name__ == '__main__':
     init_db()
+
