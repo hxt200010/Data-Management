@@ -816,6 +816,164 @@ def get_policies_needing_notification(days_before_expiry, notification_type):
     return [dict(row) for row in policies]
 
 
+# ============================================
+# ANALYTICS & REPORTING
+# ============================================
+
+def get_policy_breakdown():
+    """Get count of policies by type"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT policy_type, COUNT(*) as count, SUM(premium) as total_premium
+        FROM policies
+        WHERE status = 'active'
+        GROUP BY policy_type
+        ORDER BY count DESC
+    ''')
+    
+    results = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in results]
+
+
+def get_revenue_by_month(months=6):
+    """Get monthly revenue (premium) for the last N months"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT 
+            strftime('%Y-%m', start_date) as month,
+            SUM(premium) as revenue,
+            COUNT(*) as policy_count
+        FROM policies
+        WHERE start_date >= date('now', '-' || ? || ' months')
+        GROUP BY strftime('%Y-%m', start_date)
+        ORDER BY month ASC
+    ''', (months,))
+    
+    results = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in results]
+
+
+def get_claims_by_status():
+    """Get claims grouped by status"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT status, COUNT(*) as count, SUM(amount) as total_amount
+        FROM claims
+        GROUP BY status
+        ORDER BY count DESC
+    ''')
+    
+    results = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in results]
+
+
+def get_claims_by_type():
+    """Get claims grouped by type"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT claim_type, COUNT(*) as count, SUM(amount) as total_amount
+        FROM claims
+        GROUP BY claim_type
+        ORDER BY count DESC
+        LIMIT 10
+    ''')
+    
+    results = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in results]
+
+
+def get_customer_lifetime_value():
+    """Get total premium value per customer (CLV)"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT 
+            c.id,
+            c.name,
+            c.email,
+            COUNT(p.id) as policy_count,
+            COALESCE(SUM(p.premium), 0) as total_premium,
+            MIN(p.start_date) as first_policy_date
+        FROM customers c
+        LEFT JOIN policies p ON c.id = p.customer_id
+        GROUP BY c.id
+        ORDER BY total_premium DESC
+    ''')
+    
+    results = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in results]
+
+
+def get_monthly_report_data():
+    """Get comprehensive data for monthly report"""
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Current month stats
+    current_month = datetime.now().strftime('%Y-%m')
+    
+    # New customers this month
+    cursor.execute('''
+        SELECT COUNT(*) FROM customers 
+        WHERE strftime('%Y-%m', created_at) = ?
+    ''', (current_month,))
+    new_customers = cursor.fetchone()[0]
+    
+    # New policies this month
+    cursor.execute('''
+        SELECT COUNT(*), COALESCE(SUM(premium), 0) FROM policies 
+        WHERE strftime('%Y-%m', start_date) = ?
+    ''', (current_month,))
+    result = cursor.fetchone()
+    new_policies = result[0]
+    new_premium = result[1]
+    
+    # Claims filed this month
+    cursor.execute('''
+        SELECT COUNT(*), COALESCE(SUM(amount), 0) FROM claims 
+        WHERE strftime('%Y-%m', filed_date) = ?
+    ''', (current_month,))
+    result = cursor.fetchone()
+    claims_filed = result[0]
+    claims_amount = result[1]
+    
+    # Policies expiring this month
+    cursor.execute('''
+        SELECT COUNT(*) FROM policies 
+        WHERE strftime('%Y-%m', end_date) = ? AND status = 'active'
+    ''', (current_month,))
+    expiring_policies = cursor.fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        'month': datetime.now().strftime('%B %Y'),
+        'new_customers': new_customers,
+        'new_policies': new_policies,
+        'new_premium': round(new_premium, 2),
+        'claims_filed': claims_filed,
+        'claims_amount': round(claims_amount, 2),
+        'expiring_policies': expiring_policies,
+        'policy_breakdown': get_policy_breakdown(),
+        'claims_by_status': get_claims_by_status(),
+        'top_customers': get_customer_lifetime_value()[:10]
+    }
+
+
 # Initialize database when module is imported
 if __name__ == '__main__':
     init_db()

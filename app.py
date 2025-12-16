@@ -30,7 +30,10 @@ from database import (
     log_action, get_audit_logs,
     # Claims and alerts
     create_claim, get_all_claims, get_claim_by_id, update_claim, delete_claim,
-    get_claim_types, get_claims_stats, get_renewal_alerts, get_expiring_policies
+    get_claim_types, get_claims_stats, get_renewal_alerts, get_expiring_policies,
+    # Analytics
+    get_policy_breakdown, get_revenue_by_month, get_claims_by_status,
+    get_claims_by_type, get_customer_lifetime_value, get_monthly_report_data
 )
 
 app = Flask(__name__)
@@ -777,6 +780,142 @@ def api_send_manual_reminder(policy_id):
         return jsonify({'success': True, 'message': f'Reminder sent to {customer["email"]}'})
     
     return jsonify({'success': False, 'error': 'Failed to send reminder'}), 500
+
+
+# ============================================
+# ANALYTICS API
+# ============================================
+
+@app.route('/api/analytics/policies', methods=['GET'])
+@login_required
+def api_analytics_policies():
+    """API: Get policy breakdown by type"""
+    return jsonify(get_policy_breakdown())
+
+
+@app.route('/api/analytics/revenue', methods=['GET'])
+@login_required
+def api_analytics_revenue():
+    """API: Get monthly revenue data"""
+    months = request.args.get('months', 6, type=int)
+    return jsonify(get_revenue_by_month(months))
+
+
+@app.route('/api/analytics/claims-status', methods=['GET'])
+@login_required
+def api_analytics_claims_status():
+    """API: Get claims by status"""
+    return jsonify(get_claims_by_status())
+
+
+@app.route('/api/analytics/claims-type', methods=['GET'])
+@login_required
+def api_analytics_claims_type():
+    """API: Get claims by type"""
+    return jsonify(get_claims_by_type())
+
+
+@app.route('/api/analytics/clv', methods=['GET'])
+@login_required
+def api_analytics_clv():
+    """API: Get customer lifetime value"""
+    return jsonify(get_customer_lifetime_value())
+
+
+@app.route('/api/reports/monthly', methods=['GET'])
+@admin_required
+def api_monthly_report():
+    """API: Generate monthly PDF report (Admin only)"""
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib import colors
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from datetime import datetime
+    
+    data = get_monthly_report_data()
+    
+    # Create PDF in memory
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter, topMargin=50, bottomMargin=50)
+    styles = getSampleStyleSheet()
+    story = []
+    
+    # Title
+    title_style = ParagraphStyle('Title', parent=styles['Heading1'], fontSize=24, spaceAfter=30, textColor=colors.HexColor('#1a1a2e'))
+    story.append(Paragraph(f"Insurance CRM - Monthly Report", title_style))
+    story.append(Paragraph(f"{data['month']}", styles['Heading2']))
+    story.append(Spacer(1, 20))
+    
+    # Summary Stats
+    story.append(Paragraph("Summary Statistics", styles['Heading2']))
+    summary_data = [
+        ['Metric', 'Value'],
+        ['New Customers', str(data['new_customers'])],
+        ['New Policies', str(data['new_policies'])],
+        ['New Premium', f"${data['new_premium']:,.2f}"],
+        ['Claims Filed', str(data['claims_filed'])],
+        ['Claims Amount', f"${data['claims_amount']:,.2f}"],
+        ['Expiring Policies', str(data['expiring_policies'])],
+    ]
+    summary_table = Table(summary_data, colWidths=[200, 150])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f3460')),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 11),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.HexColor('#f0f0f0')),
+        ('GRID', (0, 0), (-1, -1), 1, colors.white),
+    ]))
+    story.append(summary_table)
+    story.append(Spacer(1, 30))
+    
+    # Policy Breakdown
+    if data['policy_breakdown']:
+        story.append(Paragraph("Policies by Type", styles['Heading2']))
+        policy_data = [['Type', 'Count', 'Total Premium']]
+        for p in data['policy_breakdown']:
+            policy_data.append([p['policy_type'].title(), str(p['count']), f"${p['total_premium']:,.2f}"])
+        policy_table = Table(policy_data, colWidths=[150, 100, 150])
+        policy_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f3460')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),
+        ]))
+        story.append(policy_table)
+        story.append(Spacer(1, 30))
+    
+    # Top Customers
+    if data['top_customers']:
+        story.append(Paragraph("Top Customers by Lifetime Value", styles['Heading2']))
+        clv_data = [['Customer', 'Policies', 'Total Premium']]
+        for c in data['top_customers'][:5]:
+            clv_data.append([c['name'], str(c['policy_count']), f"${c['total_premium']:,.2f}"])
+        clv_table = Table(clv_data, colWidths=[200, 80, 120])
+        clv_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f3460')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('ALIGN', (1, 0), (-1, -1), 'RIGHT'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('GRID', (0, 0), (-1, -1), 1, colors.lightgrey),
+        ]))
+        story.append(clv_table)
+    
+    # Build PDF
+    doc.build(story)
+    buffer.seek(0)
+    
+    log_action(session['user_id'], session['username'], 'generate_report', 'report', None,
+               {'type': 'monthly', 'month': data['month']}, request.remote_addr)
+    
+    return Response(
+        buffer.getvalue(),
+        mimetype='application/pdf',
+        headers={'Content-Disposition': f'attachment; filename=monthly_report_{datetime.now().strftime("%Y%m")}.pdf'}
+    )
 
 
 # ============================================

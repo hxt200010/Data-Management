@@ -62,3 +62,7 @@ htmlcov/
 # Distribution
 *.tar.gz
 *.zip
+
+
+#project description
+project_description.txt

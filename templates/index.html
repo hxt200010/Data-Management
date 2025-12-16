@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insurance CRM - Customer Data Management</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -534,6 +535,14 @@
         .alert-list { font-size: 0.8rem; color: #a1a1aa; max-height: 80px; overflow-y: auto; }
         .alert-list-item { padding: 0.3rem 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
+        /* Charts */
+        .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+        .chart-card { background: rgba(255, 255, 255, 0.05); padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .chart-card h3 { font-size: 1rem; margin-bottom: 1rem; color: #00d9ff; }
+        .chart-container { position: relative; height: 250px; }
+        .clv-table { margin-top: 1rem; }
+        .clv-rank { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: linear-gradient(135deg, #00d9ff, #00ff88); color: #1a1a2e; border-radius: 50%; font-size: 0.75rem; font-weight: bold; }
+
         /* Per page select */
         .per-page-select {
             display: flex;
@@ -620,11 +629,11 @@
             </div>
         </div>
 
-        <!-- Tabs -->
         <div class="tabs">
             <button class="tab active" onclick="switchTab('customers')">👥 Customers</button>
             <button class="tab" onclick="switchTab('policies')">📋 Policies</button>
             <button class="tab" onclick="switchTab('claims')">📝 Claims</button>
+            <button class="tab" onclick="switchTab('reports')">📊 Reports</button>
             <button class="tab admin-only" onclick="switchTab('users')">👤 Users</button>
             <button class="tab admin-only" onclick="switchTab('audit')">📜 Audit Log</button>
         </div>
@@ -902,6 +911,60 @@
                     
                     <div class="empty-state" id="claimEmptyState" style="display: none;">
                         <p>No claims found</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div id="reportsTab" class="tab-content">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2>📊 Analytics & Reports</h2>
+                    <button class="btn btn-primary admin-only" onclick="downloadMonthlyReport()">📥 Download PDF Report</button>
+                </div>
+                
+                <div class="charts-grid">
+                    <!-- Policy Breakdown Chart -->
+                    <div class="chart-card">
+                        <h3>📋 Policies by Type</h3>
+                        <div class="chart-container">
+                            <canvas id="policyChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Revenue Trends Chart -->
+                    <div class="chart-card">
+                        <h3>💰 Revenue Trends (6 Months)</h3>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Claims by Status Chart -->
+                    <div class="chart-card">
+                        <h3>📝 Claims by Status</h3>
+                        <div class="chart-container">
+                            <canvas id="claimsChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Customer Lifetime Value -->
+                    <div class="chart-card">
+                        <h3>👑 Top Customers by Lifetime Value</h3>
+                        <div class="clv-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Rank</th>
+                                        <th>Customer</th>
+                                        <th>Policies</th>
+                                        <th>Total Premium</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="clvTable"></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1668,6 +1731,177 @@
         }
 
         // ============================================
+        // CHARTS & ANALYTICS
+        // ============================================
+
+        let policyChart, revenueChart, claimsChart;
+
+        async function loadCharts() {
+            await Promise.all([
+                loadPolicyChart(),
+                loadRevenueChart(),
+                loadClaimsChart(),
+                loadCLVTable()
+            ]);
+        }
+
+        async function loadPolicyChart() {
+            try {
+                const response = await fetch(`${API_URL}/analytics/policies`);
+                const data = await response.json();
+                
+                const ctx = document.getElementById('policyChart').getContext('2d');
+                
+                if (policyChart) policyChart.destroy();
+                
+                const colors = ['#00d9ff', '#00ff88', '#f472b6', '#fbbf24', '#a78bfa'];
+                
+                policyChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.map(d => d.policy_type.charAt(0).toUpperCase() + d.policy_type.slice(1)),
+                        datasets: [{
+                            data: data.map(d => d.count),
+                            backgroundColor: colors.slice(0, data.length),
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { color: '#e4e4e7', padding: 15 }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load policy chart:', error);
+            }
+        }
+
+        async function loadRevenueChart() {
+            try {
+                const response = await fetch(`${API_URL}/analytics/revenue`);
+                const data = await response.json();
+                
+                const ctx = document.getElementById('revenueChart').getContext('2d');
+                
+                if (revenueChart) revenueChart.destroy();
+                
+                revenueChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: data.map(d => d.month),
+                        datasets: [{
+                            label: 'Revenue ($)',
+                            data: data.map(d => d.revenue),
+                            borderColor: '#00d9ff',
+                            backgroundColor: 'rgba(0, 217, 255, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: '#a1a1aa' }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: '#a1a1aa', callback: v => '$' + v.toLocaleString() }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load revenue chart:', error);
+            }
+        }
+
+        async function loadClaimsChart() {
+            try {
+                const response = await fetch(`${API_URL}/analytics/claims-status`);
+                const data = await response.json();
+                
+                const ctx = document.getElementById('claimsChart').getContext('2d');
+                
+                if (claimsChart) claimsChart.destroy();
+                
+                const statusColors = {
+                    submitted: '#fbbf24',
+                    reviewing: '#60a5fa',
+                    approved: '#86efac',
+                    denied: '#fca5a5',
+                    paid: '#c084fc'
+                };
+                
+                claimsChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.map(d => d.status.charAt(0).toUpperCase() + d.status.slice(1)),
+                        datasets: [{
+                            label: 'Claims',
+                            data: data.map(d => d.count),
+                            backgroundColor: data.map(d => statusColors[d.status] || '#60a5fa')
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false }
+                        },
+                        scales: {
+                            x: {
+                                grid: { display: false },
+                                ticks: { color: '#a1a1aa' }
+                            },
+                            y: {
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                ticks: { color: '#a1a1aa' }
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Failed to load claims chart:', error);
+            }
+        }
+
+        async function loadCLVTable() {
+            try {
+                const response = await fetch(`${API_URL}/analytics/clv`);
+                const data = await response.json();
+                
+                const table = document.getElementById('clvTable');
+                
+                table.innerHTML = data.slice(0, 10).map((c, i) => `
+                    <tr>
+                        <td><span class="clv-rank">${i + 1}</span></td>
+                        <td>${escapeHtml(c.name)}</td>
+                        <td>${c.policy_count}</td>
+                        <td>$${parseFloat(c.total_premium || 0).toLocaleString()}</td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load CLV table:', error);
+            }
+        }
+
+        function downloadMonthlyReport() {
+            window.location.href = `${API_URL}/reports/monthly`;
+        }
+
+        // ============================================
         // INITIALIZE
         // ============================================
         
@@ -1704,6 +1938,7 @@
             loadClaims();
             loadPolicyDropdown();
             loadRenewalAlerts();
+            loadCharts();
             
             if (currentUser && currentUser.role === 'admin') {
                 loadUsers();
